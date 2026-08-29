@@ -3,6 +3,20 @@ from twilio.rest import Client
 from dotenv import load_dotenv
 import os
 from supabase import create_client
+from functools import wraps
+from flask import session, redirect
+
+app.secret_key = os.getenv("SECRET_KEY", "swiftsystems2026")
+
+MOT_DE_PASSE = os.getenv("ADMIN_PASSWORD", "admin123")
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("logged_in"):
+            return redirect("/login")
+        return f(*args, **kwargs)
+    return decorated
 
 load_dotenv()
 app = Flask(__name__)
@@ -113,6 +127,7 @@ def ajouter_client():
     return {"success": True}, 200
 
 @app.route("/clients")
+@login_required
 def liste_clients():
     data = supabase.table("clients").select("*").order("created_at", desc=True).execute().data
     rows = ""
@@ -188,3 +203,41 @@ def marquer_sms(client_id):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 3000)))
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        if request.form.get("password") == MOT_DE_PASSE:
+            session["logged_in"] = True
+            return redirect("/clients")
+        return """
+        <div style="text-align:center;margin-top:100px;font-family:Arial">
+            <h2>Mot de passe incorrect</h2>
+            <a href="/login">Réessayer</a>
+        </div>
+        """
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Connexion</title>
+        <meta charset="utf-8">
+        <style>
+            body { font-family: Georgia; background: #f9f9f9; }
+            .container { max-width: 400px; margin: 100px auto; background: white; padding: 40px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); text-align: center; }
+            h1 { color: #2c3e50; margin-bottom: 20px; font-size: 20px; letter-spacing: 2px; }
+            input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 3px; font-size: 14px; margin-bottom: 15px; box-sizing: border-box; }
+            button { width: 100%; padding: 12px; background: #2c3e50; color: white; border: none; font-size: 14px; cursor: pointer; letter-spacing: 1px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>ESPACE ADMIN</h1>
+            <form method="POST">
+                <input type="password" name="password" placeholder="Mot de passe" />
+                <button type="submit">CONNEXION</button>
+            </form>
+        </div>
+    </body>
+    </html>
+    """
