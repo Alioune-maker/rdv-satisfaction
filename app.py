@@ -6,20 +6,11 @@ from supabase import create_client
 from functools import wraps
 from flask import session, redirect
 
+load_dotenv()
+app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "swiftsystems2026")
 
 MOT_DE_PASSE = os.getenv("ADMIN_PASSWORD", "admin123")
-
-def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if not session.get("logged_in"):
-            return redirect("/login")
-        return f(*args, **kwargs)
-    return decorated
-
-load_dotenv()
-app = Flask(__name__)
 
 ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
