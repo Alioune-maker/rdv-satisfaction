@@ -65,8 +65,7 @@ def accueil():
             <textarea id="message" placeholder="Informations supplémentaires..."></textarea>
             <button onclick="soumettre()">ENVOYER LA DEMANDE</button>
             <div class="success" id="msg"></div>
-            <div class="nav"><a href="/clients">Voir la liste des clients →</a></div>
-        </div>
+    
         <script>
             function soumettre() {
                 const nom = document.getElementById('nom').value;
